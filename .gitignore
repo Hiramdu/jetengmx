@@ -1,0 +1,14 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated experiment outputs are intentionally not published.
+experiment_results/
+
+# Keep dataset documentation, but never commit downloaded/raw datasets.
+data/*
+!data/README.md
+
+# Generated figures.
+figures/

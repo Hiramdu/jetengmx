@@ -1,0 +1,24 @@
+# Versions used for the results reported in the paper and its revision.
+# Python 3.11. No GPU is required for any script.
+numpy==1.26.4
+pandas==2.3.3
+scikit-learn==1.6.1
+lightgbm==4.6.0
+scipy==1.16.3
+optuna==4.9.0          # experiment_optuna.py, revision_b1b3_nested.py
+statsmodels==0.14.6    # tsfresh dependency
+matplotlib==3.10.9     # make_*.py figures only
+
+# Feature extraction. On systems with GCC < 9.3, pip tries to build NumPy from
+# source inside tsfresh's build isolation and fails; install as:
+#   pip install --only-binary=:all: statsmodels patsy stumpy cloudpickle \
+#       "dask[dataframe]" distributed tqdm requests PyWavelets
+#   pip install --no-deps tsfresh
+tsfresh==0.21.2
+
+# revision_a3_pdf_uq.py only (MC-dropout and Gaussian-NLL deep ensemble).
+# CPU wheels are sufficient.
+torch==2.6.0
+
+# make_shap_figure.py only.
+shap>=0.44
