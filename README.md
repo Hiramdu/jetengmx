@@ -18,18 +18,28 @@ code/common.py            shared preprocessing, features, splitting, scoring
 experiment_*.py           the pipeline and analyses of the original submission
 revision_*.py             the revision round, one script per reviewer comment
 make_*.py                 figures (written to figures/)
-experiment_results/       locally generated outputs (not tracked)
+experiment_results/       small CSV/JSON outputs behind every table (committed)
 data/                     where to put the input data (not redistributed)
 ```
 
 ## Setup
 
-Python 3.11, CPU only. Pinned versions are in `requirements.txt`, which also
-documents the one non-obvious install (tsfresh on systems with an old GCC).
+Two environments are pinned because the archived 60/20/20 artifacts and the
+revision rerun used different Python/tsfresh releases:
+
+- `requirements-main.txt`: Python 3.12 and tsfresh 0.21.1, used for the
+  archived 60/20/20 artifacts retained as a secondary analysis in the paper;
+- `requirements-revision.txt`: Python 3.11 and tsfresh 0.21.2, used for the
+  revision analyses. `requirements.txt` carries the same package pins and is
+  provided as the default installation file.
+
+All direct dependencies are fixed with exact `==` versions. No GPU is required.
+The revision requirements also document the one non-obvious install on systems
+with an old GCC.
 
 ```bash
-python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
+python3.11 -m venv .venv && . .venv/bin/activate
+pip install -r requirements-revision.txt
 ```
 
 Then obtain the two datasets as described in [`data/README.md`](data/README.md).
@@ -38,8 +48,8 @@ Neither is redistributed here.
 ## Running
 
 Two scripts must run first, because they produce the prediction files that
-everything else consumes. Generated outputs are written to the local,
-untracked `experiment_results/` directory:
+everything else consumes (see
+[`experiment_results/README.md`](experiment_results/README.md)):
 
 ```bash
 python experiment_stack_calibrate.py     # -> {train,val,test}_with_predictions.csv
@@ -84,8 +94,16 @@ After that every script below runs standalone and writes to
 `revision_b5_cmapss_decision.py` needs the C-MAPSS files (see
 [`data/README.md`](data/README.md)) and finishes in under a minute.
 `revision_b1b3_nested.py` runs 50 Optuna trials per target and takes roughly
-half an hour; its `WINDOWS` dictionary selects between the two apportionment
-variants reported in Table 7. `revision_b2_causal.py` rebuilds all features
+half an hour per allocation. Run both apportionment variants reported in
+Table 7 as follows:
+
+```bash
+NESTED_VARIANT=I  python revision_b1b3_nested.py
+NESTED_VARIANT=II python revision_b1b3_nested.py
+```
+
+The second command writes files with the `_fit40` suffix.
+`revision_b2_causal.py` rebuilds all features
 twice from `training_data.csv` and is the slowest script here. The rest finish
 in seconds to minutes.
 
@@ -96,7 +114,8 @@ in seconds to minutes.
 - The competition score uses the time weight λ = 0.01 of Eq. 1 throughout; every
   call site passes it explicitly.
 - `revision_b2_causal.py` reruns feature extraction under whatever tsfresh
-  release is installed. With tsfresh 0.21.2 it selects the same 229 features and
+  release is installed. With the pinned revision environment (Python 3.11,
+  tsfresh 0.21.2) it selects the same 229 features and
   reproduces validation R² to within 0.01, but the achieved test coverages move
   relative to Table 4 (HPT 0.568, HPC 0.284 against 0.47 and 0.17). Section 5.8
   of the paper discusses this; what is stable is the separation between the

@@ -1,6 +1,5 @@
-# Default reproducibility environment: revision analyses.
-# Python 3.11, CPU only. The archived 60/20/20 artifacts use the separately
-# pinned requirements-main.txt (Python 3.12 and tsfresh 0.21.1).
+# Second-round/revision environment.
+# Python 3.11, CPU only.
 numpy==1.26.4
 pandas==2.3.3
 scikit-learn==1.6.1
