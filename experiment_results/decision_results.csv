@@ -1,0 +1,10 @@
+policy,target,total_cost,mean_cost,late_failures,n_engines,mean_lead_cycles
+naive,WW,130.0,32.5,0,4,32.5
+naive,HPC_SV,2000.0,500.0,4,4,
+naive,HPT_SV,2000.0,500.0,4,4,0.0
+fixed_buffer,WW,290.0,72.5,0,4,72.5
+fixed_buffer,HPC_SV,2000.0,500.0,4,4,
+fixed_buffer,HPT_SV,1250.0,312.5,2,4,125.0
+uncertainty_aware,WW,520.0,130.0,0,4,130.0
+uncertainty_aware,HPC_SV,2000.0,500.0,4,4,
+uncertainty_aware,HPT_SV,570.0,142.5,0,4,142.5

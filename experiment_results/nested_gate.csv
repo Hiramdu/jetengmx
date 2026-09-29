@@ -1,0 +1,4 @@
+target,half_width,gate_coverage_D,gate_threshold,decision,block_coverage,slope,slope_t,slope_p,decision_trend,deployed_coverage_E
+WW,382.8,0.963,0.8,prediction-driven,"[1.0, 0.81, 0.925, 1.0]",0.0115,0.24,0.8346,prediction-driven,0.902
+HPT_SV,349.6,0.84,0.8,prediction-driven,"[0.86, 0.95, 0.81, 0.87]",-0.011,-0.36,0.7549,prediction-driven,0.286
+HPC_SV,492.9,0.507,0.8,fallback,"[0.95, 0.86, 0.515, 0.5]",-0.1695,-3.94,0.0588,fallback,0.19

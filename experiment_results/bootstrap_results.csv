@@ -1,0 +1,6 @@
+metric,value
+red_unc_mean,36.33310457673102
+red_unc_lo,17.688753315649866
+red_unc_hi,54.863688581480496
+p_unc_lt_naive,1.0
+p_unc_lt_fixed,0.9586

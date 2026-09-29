@@ -12,23 +12,29 @@ B3: the reliability gate was demonstrated retrospectively (achieved coverage
     was then evaluated on that same window).
 
 Both are addressed by one strictly nested temporal design.  Per engine, the
-timeline is cut into four disjoint, time-ordered windows:
+timeline is cut into five disjoint, time-ordered windows. Two allocations are
+supported through NESTED_VARIANT=I or NESTED_VARIANT=II:
 
-    A  0-60 %   fit the four base learners.  Deliberately the same window, and
-                the same 4,800 rows, as the training split of the main analysis,
-                so that nothing here is confounded with a smaller training set.
-    B  60-70 %  model selection: Optuna for LightGBM (same search space and
-                budget as experiment_optuna.py), ridge meta-learner, per-bin
-                bias correction.
-    C  70-75 %  split-conformal calibration  (untouched by fitting/tuning)
-    D  75-80 %  GATE measurement: achieved coverage -> which targets may be
-                driven by predictions.  Available strictly BEFORE deployment.
-    E  80-100 % deployment: reported coverage and the decision experiment.
-                Identical to the test window of the submitted paper (n=1,604).
+                A          B          C          D          E
+    Variant I   0-60 %     60-70 %    70-75 %    75-80 %    80-100 %
+    Variant II  0-40 %     40-55 %    55-70 %    70-80 %    80-100 %
 
-Windows B, C and D together are exactly the 60-80 % range that the main analysis
-used as one undifferentiated validation window for tuning, for fitting the
-meta-learner, for fitting the bias correction AND for conformal calibration.
+    A  fit the four base learners.  Variant I deliberately uses the same
+       4,800-row fitting window as the training split of the secondary
+       60/20/20 analysis, isolating the calibration protocol from training-size
+       effects.
+    B  model selection: Optuna for LightGBM (same search space and budget as
+       experiment_optuna.py), ridge meta-learner, and per-bin bias correction.
+    C  split-conformal calibration, untouched by fitting or tuning.
+    D  gate measurement: achieved coverage determines which targets may be
+       prediction-driven, using information available strictly before E.
+    E  deployment: reported coverage and the decision experiment.  This is
+       identical to the submitted paper's test window (n=1,604).
+
+Under Variant I, windows B, C, and D together are exactly the 60-80 % range
+that the secondary 60/20/20 analysis used as one undifferentiated validation
+window for tuning, meta-learner fitting, bias correction, and conformal
+calibration.
 
 Everything the gate uses (A-D) precedes E, so the gate-and-policy workflow is
 prospective.  Feature construction is inherited from the stored feature matrix
@@ -36,12 +42,13 @@ prospective.  Feature construction is inherited from the stored feature matrix
 revision_b2_causal.py).
 
 Outputs (experiment_results/):
-    nested_accuracy.csv     honest out-of-sample accuracy per window
-    nested_coverage.csv     coverage on C (in-window), D (gate), E (deploy)
-    nested_gate.csv         gate decision per target + resulting policy routing
-    nested_decision.csv     decision outcomes on E, gated vs ungated, by engine
+    nested_accuracy[_fit40].csv     out-of-sample accuracy per window
+    nested_coverage[_fit40].csv     coverage on C, D and E at four nominal levels
+    nested_gate[_fit40].csv         gate decision + resulting policy routing
+    nested_decision[_fit40].csv     decision outcomes on E, by engine
 """
 import json
+import os
 import warnings
 from pathlib import Path
 
@@ -60,22 +67,35 @@ optuna.logging.set_verbosity(optuna.logging.WARNING)
 RESULTS = Path(__file__).parent / "experiment_results"
 TARGETS = ["WW", "HPT_SV", "HPC_SV"]
 SEED = 42
-ALPHA = 0.10          # nominal miscoverage -> 90 % intervals
+ALPHA = 0.10          # nominal miscoverage of the headline interval
+ALPHAS = (0.10, 0.15, 0.20, 0.25)   # the four levels of Table 4, so that the
+                                    # nested column can be filled at every one
 LAMBDA = 0.01         # time-weight of Eq. 1 as PRINTED in the manuscript
 N_TRIALS = 50         # matches experiment_optuna.py, which produced the
-                      # hyperparameters used in the main analysis
+                      # hyperparameters used in the secondary 60/20/20 analysis
 GATE_TOL = 0.10       # a target is trusted if achieved coverage >= 1-alpha-tol
 C_EARLY, C_LATE, C_FAIL = 1.0, 2.0, 500.0
 
 # window boundaries as fractions of each engine's own timeline
-# The fit window is held at the first 60 % of each timeline -- exactly the
-# training window of the main analysis -- so that the comparison with
+# Variant I holds the fit window at the first 60 % of each timeline -- exactly
+# the training window of the secondary 60/20/20 analysis -- so the comparison with
 # Tables 3-4 isolates the calibration protocol and is not confounded with a
 # smaller training set.  Model selection, calibration and the gate are then
-# carved out of the 60-80 % range that the main analysis used as one
+# carved out of the 60-80 % range that the secondary analysis used as one
 # undifferentiated validation window.
-WINDOWS = {"A": (0.00, 0.60), "B": (0.60, 0.70), "C": (0.70, 0.75),
-           "D": (0.75, 0.80), "E": (0.80, 1.00)}
+VARIANTS = {
+    # Variant I keeps the secondary analysis's fitting window (60 %) and leaves
+    # 5 % each for calibration and the gate.
+    "I":  {"A": (0.00, 0.60), "B": (0.60, 0.70), "C": (0.70, 0.75),
+           "D": (0.75, 0.80), "E": (0.80, 1.00)},
+    # Variant II gives calibration and the gate more data by shortening the
+    # fitting window to 40 %.
+    "II": {"A": (0.00, 0.40), "B": (0.40, 0.55), "C": (0.55, 0.70),
+           "D": (0.70, 0.80), "E": (0.80, 1.00)},
+}
+VARIANT = os.environ.get("NESTED_VARIANT", "I")
+WINDOWS = VARIANTS[VARIANT]
+SUFFIX = "" if VARIANT == "I" else "_fit40"
 
 
 # ----------------------------------------------------------------- data ----
@@ -217,7 +237,7 @@ def fit_pipeline(W, feats, target):
     def objective(trial):
         params = dict(
             # Search space identical to experiment_optuna.py, so that the only
-            # difference from the main analysis is the temporal protocol.
+            # difference from the secondary analysis is the temporal protocol.
             n_estimators=trial.suggest_int("n_estimators", 200, 1500),
             max_depth=trial.suggest_int("max_depth", 3, 12),
             learning_rate=trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
@@ -305,12 +325,14 @@ def main():
                             r2=round(r2_score(y, p[k]), 3),
                             comp_score=round(comp_score(y, p[k], beta), 3)))
 
-        # conformal calibration on window C only
+        # conformal calibration on window C only, at each nominal level
+        for al in ALPHAS:
+            qa = conformal_q(np.abs(W["C"][ycol].to_numpy() - p["C"]), al)
+            for k in ("C", "D", "E"):
+                cov.append(dict(target=t, window=k, nominal=round(1 - al, 2),
+                                half_width=round(qa, 1),
+                                achieved=round(coverage(W[k][ycol].to_numpy(), p[k], qa), 3)))
         q = conformal_q(np.abs(W["C"][ycol].to_numpy() - p["C"]))
-        for k in ("C", "D", "E"):
-            cov.append(dict(target=t, window=k, nominal=1 - ALPHA,
-                            half_width=round(q, 1),
-                            achieved=round(coverage(W[k][ycol].to_numpy(), p[k], q), 3)))
 
         cov_D = coverage(W["D"][ycol].to_numpy(), p["D"], q)
         cov_E = coverage(W["E"][ycol].to_numpy(), p["E"], q)
@@ -336,11 +358,11 @@ def main():
               f"p={tr['p']:.3f} -> trend gate: "
               f"{'TRUST' if trusted_trend else 'FALLBACK'}", flush=True)
 
-    pd.DataFrame(acc).to_csv(RESULTS / "nested_accuracy.csv", index=False)
-    pd.DataFrame(cov).to_csv(RESULTS / "nested_coverage.csv", index=False)
+    pd.DataFrame(acc).to_csv(RESULTS / f"nested_accuracy{SUFFIX}.csv", index=False)
+    pd.DataFrame(cov).to_csv(RESULTS / f"nested_coverage{SUFFIX}.csv", index=False)
     gate_df = pd.DataFrame(gate)
-    gate_df.to_csv(RESULTS / "nested_gate.csv", index=False)
-    with open(RESULTS / "nested_best_params.json", "w") as f:
+    gate_df.to_csv(RESULTS / f"nested_gate{SUFFIX}.csv", index=False)
+    with open(RESULTS / f"nested_best_params{SUFFIX}.json", "w") as f:
         json.dump(best_params, f, indent=2)
 
     # ------------------------------------------------------------------
@@ -385,7 +407,7 @@ def main():
                 r[f"{nm}_cost"], r[f"{nm}_fail"] = c, f
             rows.append(r)
     dec = pd.DataFrame(rows)
-    dec.to_csv(RESULTS / "nested_decision.csv", index=False)
+    dec.to_csv(RESULTS / f"nested_decision{SUFFIX}.csv", index=False)
 
     print("\n=== nested coverage ===")
     print(pd.DataFrame(cov).to_string(index=False))

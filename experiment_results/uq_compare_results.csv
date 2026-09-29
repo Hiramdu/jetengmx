@@ -1,0 +1,10 @@
+target,method,test_coverage,mean_width
+WW,split_conformal,0.9476309226932669,291.2
+WW,gaussian,0.9276807980049875,275.4
+WW,normalized_conformal,0.9376558603491272,294.4
+HPC_SV,split_conformal,0.16708229426433915,786.4
+HPC_SV,gaussian,0.21758104738154613,915.6
+HPC_SV,normalized_conformal,0.16708229426433915,741.9
+HPT_SV,split_conformal,0.47256857855361595,460.1
+HPT_SV,gaussian,0.43640897755610975,422.5
+HPT_SV,normalized_conformal,0.4713216957605985,458.9

@@ -1,0 +1,11 @@
+policy,median_cost,vs_fixed_median,vs_fixed_lo,vs_fixed_hi
+naive,11740.0,-0.349,-0.497,-0.239
+fixed,8700.0,0.0,0.0,0.0
+symmetric,7450.0,0.144,-0.044,0.358
+one_sided,8890.0,-0.022,-0.152,0.112
+one_sided_matched,8850.0,-0.017,-0.14,0.049
+normalized,7820.0,0.101,-0.026,0.225
+normalized_cov,9230.0,-0.061,-0.225,0.153
+parametric_gaussian,8250.0,0.052,-0.021,0.172
+nex_scp,8700.0,0.0,-0.131,0.085
+cqr,8290.0,0.047,-0.009,0.107

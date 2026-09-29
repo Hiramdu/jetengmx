@@ -1,0 +1,4 @@
+target,C_fail,total_cost,failures,n_cycles
+WW,500,3870.0,4,20
+HPC_SV,500,3000.0,6,6
+HPT_SV,500,5050.0,10,11

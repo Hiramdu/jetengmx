@@ -13,6 +13,7 @@ import numpy as np
 import json
 import lightgbm as lgb
 import warnings
+from pathlib import Path
 warnings.filterwarnings('ignore')
 
 from tsfresh import extract_features
@@ -26,6 +27,8 @@ RANDOM_STATE = 42
 np.random.seed(RANDOM_STATE)
 TARGETS = ["Cycles_to_WW", "Cycles_to_HPC_SV", "Cycles_to_HPT_SV"]
 TARGET_LABELS = ["Water-Wash (WW)", "HPC Shop Visit", "HPT Shop Visit"]
+RESULTS = Path(__file__).parent / "experiment_results"
+RESULTS.mkdir(exist_ok=True)
 
 # ══════════════════════════════════════════════════════════════════════════
 # DATA PIPELINE (same as experiment_optuna.py — condensed)
@@ -167,7 +170,7 @@ def asymmetric_objective(y_true, y_pred):
     return 2.0 * weight * error, 2.0 * weight
 
 # Load Optuna best params
-with open("experiment_results/optuna_best_params.json") as f:
+with open(RESULTS / "optuna_best_params.json") as f:
     optuna_params = json.load(f)
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -259,9 +262,11 @@ for target, label in zip(TARGETS, TARGET_LABELS):
         # For simplicity, use first half to predict second half, then full train for first half
         pass
 
-    # Simpler approach: train base models on train, predict val, use val predictions as meta-features
-    # Train meta-learner on val, evaluate on test (this is valid since val is held-out from base training)
-    # But we need a separate meta-train set. Use a 50/50 split of val.
+    # Train base models on train, predict val, and use val predictions as
+    # meta-features. VAL is unseen by the base learners but is used to fit the
+    # meta-learner and bias correction; it is therefore not an independent
+    # calibration set for the complete predictor. The strictly nested revision
+    # experiment separates these roles.
     n_va = len(val_df)
     meta_train_idx = range(0, n_va // 2)
     meta_val_idx = range(n_va // 2, n_va)
@@ -343,6 +348,20 @@ for target, label in zip(TARGETS, TARGET_LABELS):
     y_va = val_df[target].values
 
     # Use stacked predictions as the base for calibration
+    model_names = list(base_model_configs.keys())
+    meta_X_train = np.column_stack([
+        base_models[target][mn].predict(X_train) for mn in model_names
+    ])
+    context_cols = [
+        "Cycles_Since_Last_WW",
+        "Cycles_Since_Last_HPC_SV",
+        "Cycles_Since_Last_HPT_SV",
+    ]
+    ctx_idx = [selected.index(c) for c in context_cols if c in selected]
+    meta_X_train_full = np.column_stack([meta_X_train, X_train[:, ctx_idx]])
+    raw_train = np.clip(
+        stack_preds[target]["meta_model"].predict(meta_X_train_full), 0, None
+    )
     raw_val = stack_preds[target]["stack_val"]
     raw_test = stack_preds[target]["stack_test"]
 
@@ -365,13 +384,22 @@ for target, label in zip(TARGETS, TARGET_LABELS):
     cal_val = raw_val - bin_corrections[bin_idx]
     cal_val = np.clip(cal_val, 0, None)
 
+    # Apply the same final predictor and correction to the training artifact.
+    train_bin_idx = np.digitize(raw_train, bin_edges) - 1
+    train_bin_idx = np.clip(train_bin_idx, 0, N_BINS - 1)
+    cal_train = np.clip(raw_train - bin_corrections[train_bin_idx], 0, None)
+
     # Apply correction to test (bin by predicted value)
     test_bin_idx = np.digitize(raw_test, bin_edges) - 1
     test_bin_idx = np.clip(test_bin_idx, 0, N_BINS - 1)
     cal_test = raw_test - bin_corrections[test_bin_idx]
     cal_test = np.clip(cal_test, 0, None)
 
-    calibrated_preds[target] = {"val": cal_val, "test": cal_test}
+    calibrated_preds[target] = {
+        "train": cal_train,
+        "val": cal_val,
+        "test": cal_test,
+    }
 
     # Report
     raw_mae = mean_absolute_error(y_va, raw_val)
@@ -383,6 +411,22 @@ for target, label in zip(TARGETS, TARGET_LABELS):
 
     print(f"    Before cal: Val MAE={raw_mae:.1f}, R²={raw_r2:.3f}, Late%={raw_late:.1f}%")
     print(f"    After cal:  Val MAE={cal_mae:.1f}, R²={cal_r2:.3f}, Late%={cal_late:.1f}%")
+
+# Save the selected feature matrix and predictions consumed by the downstream
+# reliability and decision scripts.
+for split_name, split_df in [
+    ("train", train_df),
+    ("val", val_df),
+    ("test", test_df),
+]:
+    out = split_df[["ESN", "Cycles_Since_New"] + selected + TARGETS].copy()
+    for target in TARGETS:
+        pred_col = f"Pred_{target}"
+        pred = calibrated_preds[target][split_name]
+        out[pred_col] = np.clip(pred, 0, None)
+    path = RESULTS / f"{split_name}_with_predictions.csv"
+    out.to_csv(path, index=False)
+    print(f"  Wrote {path}")
 
 # ══════════════════════════════════════════════════════════════════════════
 # STEP 4: FINAL COMPARISON

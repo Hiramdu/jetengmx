@@ -1,0 +1,7 @@
+target,nominal_coverage,split,empirical_coverage,coverage_gap,interval_halfwidth,mean_width
+WW,0.9,test,0.948,-0.048,150.5,291.2
+WW,0.8,test,0.832,-0.032,109.6,213.7
+HPC_SV,0.9,test,0.167,0.733,393.2,786.4
+HPC_SV,0.8,test,0.132,0.668,339.9,679.9
+HPT_SV,0.9,test,0.473,0.427,231.5,460.1
+HPT_SV,0.8,test,0.28,0.52,136.6,272.7

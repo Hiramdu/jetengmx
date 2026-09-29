@@ -1,14 +1,14 @@
-.DS_Store
-.venv/
 __pycache__/
-*.py[cod]
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
 
-# Generated experiment outputs are intentionally not published.
-experiment_results/
+# Input data: redistributed by neither the PHM Society nor the NASA licence.
+training_data.csv
+data/training_data.csv
+cmapss/
 
-# Keep dataset documentation, but never commit downloaded/raw datasets.
-data/*
-!data/README.md
-
-# Generated figures.
+# Large regenerated artifacts (see experiment_results/README.md).
+experiment_results/*_with_predictions.csv
+experiment_results/*_with_intervals.csv
 figures/

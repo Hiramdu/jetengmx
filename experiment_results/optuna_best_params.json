@@ -1,0 +1,35 @@
+{
+  "Cycles_to_WW": {
+    "n_estimators": 204,
+    "max_depth": 9,
+    "learning_rate": 0.014204438947759317,
+    "subsample": 0.6261457234472588,
+    "colsample_bytree": 0.9513161521123986,
+    "reg_alpha": 1.1950817068458983,
+    "reg_lambda": 2.4137239466632296,
+    "min_child_samples": 59,
+    "num_leaves": 126
+  },
+  "Cycles_to_HPC_SV": {
+    "n_estimators": 1429,
+    "max_depth": 9,
+    "learning_rate": 0.02579364481890643,
+    "subsample": 0.5089809378074098,
+    "colsample_bytree": 0.9867495782625126,
+    "reg_alpha": 0.5767509177705765,
+    "reg_lambda": 7.801013744480624,
+    "min_child_samples": 64,
+    "num_leaves": 19
+  },
+  "Cycles_to_HPT_SV": {
+    "n_estimators": 1431,
+    "max_depth": 3,
+    "learning_rate": 0.1892368680719107,
+    "subsample": 0.6037651539370543,
+    "colsample_bytree": 0.6426600614008073,
+    "reg_alpha": 1.6241575720703438,
+    "reg_lambda": 0.0084192970753615,
+    "min_child_samples": 31,
+    "num_leaves": 23
+  }
+}

@@ -1,0 +1,7 @@
+imputation,target,n_features,val_mae,val_r2,test_mae,test_r2,half_width,test_coverage
+as_submitted,WW,229,68.3,0.913,90.2,0.697,152.2,0.944
+as_submitted,HPC_SV,229,207.3,0.969,2144.4,-6.711,433.8,0.284
+as_submitted,HPT_SV,229,88.2,0.969,452.8,0.025,280.8,0.568
+causal,WW,229,68.3,0.913,90.2,0.697,152.2,0.944
+causal,HPC_SV,229,207.3,0.969,2144.4,-6.711,433.8,0.284
+causal,HPT_SV,229,88.2,0.969,452.8,0.025,280.8,0.568

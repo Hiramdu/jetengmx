@@ -1,0 +1,10 @@
+config,target,coverage
+lgbm_nocounter,WW,0.912
+lgbm_nocounter,HPT_SV,0.818
+lgbm_nocounter,HPC_SV,0.67
+ridge_full,WW,0.901
+ridge_full,HPT_SV,0.39
+ridge_full,HPC_SV,0.243
+ridge_nocounter,WW,0.921
+ridge_nocounter,HPT_SV,0.656
+ridge_nocounter,HPC_SV,0.307

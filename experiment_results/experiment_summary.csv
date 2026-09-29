@@ -1,0 +1,5 @@
+Experiment,Model,Water-Wash (WW) MAE,Water-Wash (WW) R²,HPC Shop Visit MAE,HPC Shop Visit R²,HPT Shop Visit MAE,HPT Shop Visit R²,Competition Score
+Exp1_Ridge,Ridge Regression (L2-regularized linear model),95.0 ± 29.9,0.771 ± 0.136,797.8 ± 874.9,-1.399 ± 3.969,232.8 ± 72.3,0.770 ± 0.266,137.4820 ± 228.6297
+Exp2_GBR,Gradient Boosting Regressor,72.4 ± 8.7,0.863 ± 0.087,1508.3 ± 833.2,-1.991 ± 3.384,456.9 ± 135.5,0.462 ± 0.531,189.3723 ± 241.8231
+Exp3_RF,Random Forest Regressor,68.0 ± 9.6,0.877 ± 0.081,1644.6 ± 836.3,-2.249 ± 3.542,522.3 ± 152.9,0.358 ± 0.567,203.4254 ± 248.2978
+Exp4_LGBM,LightGBM Regressor,88.6 ± 16.8,0.815 ± 0.120,1544.9 ± 687.0,-1.649 ± 2.740,478.1 ± 132.7,0.446 ± 0.471,173.4454 ± 201.4273

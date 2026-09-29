@@ -39,12 +39,12 @@ def coverage(y, lo, hi):
 def main():
     train, val, test = load("train"), load("val"), load("test")
 
-    # IMPORTANT: calibrate on VAL residuals, not TRAIN. The base/stacking
-    # models were fit using TRAIN, so TRAIN residuals are optimistically
-    # small and would yield meaningless (too-narrow) intervals. VAL is the
-    # first split the model did not fit, so it is the valid calibration set.
-    # We then evaluate coverage on TEST (the later, shifted window). The
-    # nominal-vs-achieved gap on TEST is the honest distribution-shift result.
+    # Secondary 60/20/20 analysis. The base learners were fit on TRAIN, but
+    # the ridge meta-learner and per-bin bias correction were fit on VAL.
+    # Therefore these calibration residuals are partially in-sample for the
+    # complete predictor. The paper's primary analysis is the strictly nested
+    # protocol in revision_b1b3_nested.py, whose calibration window is unseen
+    # by fitting and tuning.
     rows = []
     for t in TARGETS:
         yhat_col, y_col = f"Pred_Cycles_to_{t}", f"Cycles_to_{t}"
@@ -73,7 +73,7 @@ def main():
     out = pd.DataFrame(rows)
     out.to_csv(RESULTS / "conformal_results.csv", index=False)
     pd.set_option("display.width", 120)
-    print("=== Split-conformal coverage (calibrated on TRAIN) ===\n")
+    print("=== Secondary split-conformal coverage (calibrated on VAL) ===\n")
     print(out.to_string(index=False))
 
     print("\n=== Key finding: per-target reliability under late-life shift ===")

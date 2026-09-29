@@ -1,0 +1,16 @@
+target,method,test_coverage,mean_width,base_model
+WW,nex_scp,0.9183291770573566,260.7,stacking (inf: 6%)
+WW,cqr,0.9588528678304239,317.0,stacking/quantile-LGBM
+HPC_SV,nex_scp,0.25997506234413964,982.7,stacking (inf: 6%)
+HPC_SV,cqr,0.24438902743142144,1929.3,stacking/quantile-LGBM
+HPT_SV,nex_scp,0.3871571072319202,337.0,stacking (inf: 6%)
+HPT_SV,cqr,0.33790523690773067,1316.1,stacking/quantile-LGBM
+WW,split_conformal,0.9644638403990025,310.0,lgbm_single
+HPC_SV,split_conformal,0.286783042394015,2657.5,lgbm_single
+HPT_SV,split_conformal,0.18017456359102244,1218.3,lgbm_single
+WW,split_conformal,0.9014962593516209,325.3,ridge
+HPC_SV,split_conformal,0.243142144638404,959.2,ridge
+HPT_SV,split_conformal,0.38965087281795513,606.2,ridge
+WW,split_conformal,0.8173316708229427,455.8,mlp
+HPC_SV,split_conformal,0.24376558603491272,1728.3,mlp
+HPT_SV,split_conformal,0.42082294264339154,793.2,mlp

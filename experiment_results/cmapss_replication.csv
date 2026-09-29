@@ -1,0 +1,5 @@
+subset,n_units,coverage_latelife,coverage_control,halfwidth_latelife,n_test
+FD001,100,0.52,0.84,56.1,4163
+FD002,260,0.285,0.915,64.0,10854
+FD003,100,0.486,0.851,57.7,4985
+FD004,249,0.184,0.864,62.7,12346

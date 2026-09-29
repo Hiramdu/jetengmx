@@ -1,0 +1,10 @@
+policy,target,C_fail,n_cycles,total_cost,failures
+naive,WW,500.0,20,6240.0,12
+naive,HPC_SV,500.0,6,3000.0,6
+naive,HPT_SV,500.0,11,5500.0,11
+fixed_buffer,WW,500.0,20,3860.0,4
+fixed_buffer,HPC_SV,500.0,6,3000.0,6
+fixed_buffer,HPT_SV,500.0,11,4840.0,9
+uncertainty_aware,WW,500.0,20,3870.0,4
+uncertainty_aware,HPC_SV,500.0,6,3000.0,6
+uncertainty_aware,HPT_SV,500.0,11,3580.0,6

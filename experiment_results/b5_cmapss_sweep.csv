@@ -1,0 +1,7 @@
+c_fail,naive_cost,naive_fail,fixed_cost,fixed_fail,conf_cost,conf_fail,conf_vs_fixed,best
+250,37603,150,2575,2,4352,0,-0.69,fixed
+500,75103,150,3075,2,4352,0,-0.415,fixed
+1000,150103,150,4075,2,4352,0,-0.068,fixed
+1500,225103,150,5075,2,4352,0,0.142,conformal
+2000,300103,150,6075,2,4352,0,0.284,conformal
+4000,600103,150,10075,2,4352,0,0.568,conformal
